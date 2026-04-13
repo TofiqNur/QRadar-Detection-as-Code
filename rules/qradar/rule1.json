@@ -9,7 +9,7 @@
     "enabled": false,
     "modification_date": 1775498284773,
     "linked_rule_identifier": null,
-    "name": "Rule 1: BRUTE Force Attack Detected (Multiple Logon Failures)",
+    "name": "Rule 1: BRUTE FORCE Attack Detected (Multiple Logon Failures)",
     "average_capacity": 3958358,
     "id": 100477,
     "base_capacity": 3958358
