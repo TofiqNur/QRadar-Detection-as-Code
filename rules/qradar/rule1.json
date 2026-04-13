@@ -1,1 +1,16 @@
-
+{
+    "owner": "admin",
+    "identifier": "fe2f257a-dfa8-46f8-89c8-f67ac9ec49f2",
+    "base_host_id": 53,
+    "capacity_timestamp": 1776085166009,
+    "origin": "USER",
+    "creation_date": 1775489751196,
+    "type": "EVENT",
+    "enabled": true,
+    "modification_date": 1775498284773,
+    "linked_rule_identifier": null,
+    "name": "Rule 1: Brute Force Attack Detected (Multiple Logon Failures)",
+    "average_capacity": 3958358,
+    "id": 100477,
+    "base_capacity": 3958358
+},
