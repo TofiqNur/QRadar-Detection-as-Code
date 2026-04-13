@@ -1,1 +1,16 @@
-
+{
+    "owner": "admin",
+    "identifier": "f78bf23d-cffc-4d50-b8fc-4325508b6631",
+    "base_host_id": 53,
+    "capacity_timestamp": 1776085166009,
+    "origin": "USER",
+    "creation_date": 1775650913615,
+    "type": "EVENT",
+    "enabled": true,
+    "modification_date": 1775650913602,
+    "linked_rule_identifier": null,
+    "name": "Rule 8: CRITICAL: Active Directory NTDS.dit Database Extraction Attempt",
+    "average_capacity": 4623208,
+    "id": 100677,
+    "base_capacity": 4623208
+}
