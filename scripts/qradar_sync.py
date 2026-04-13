@@ -9,45 +9,50 @@ QRADAR_IP = os.getenv('QRADAR_IP')
 SEC_TOKEN = os.getenv('QRADAR_TOKEN')
 RULES_PATH = "rules/qradar/"
 
-# Versiyanı 12.0 edirik, çünki bu versiya daha çox "tolerantdır"
 headers = {
     'SEC': SEC_TOKEN,
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'Version': '12.0' 
+    'Version': '15.0'
 }
 
-def try_update(rule_id, payload, rule_name):
-    # Bu endpoint ən stabil olanıdır
-    url = f"https://{QRADAR_IP}/api/analytics/rules/{rule_id}"
-    response = requests.put(url, headers=headers, data=json.dumps(payload), verify=False)
-    return response.status_code, response.text
+def get_all_rules_from_qradar():
+    url = f"https://{QRADAR_IP}/api/analytics/rules"
+    res = requests.get(url, headers=headers, verify=False)
+    return res.json() if res.status_code == 200 else []
 
-print("--- QRadar Professional Sync v3 Başladı ---")
+def update_rule(rule_id, payload):
+    url = f"https://{QRADAR_IP}/api/analytics/rules/{rule_id}"
+    # QRadar-ın sevmədiyi sahələri təmizləyirik
+    clean_payload = {k: v for k, v in payload.items() if k not in ['id', 'identifier', 'owner', 'creation_date', 'modification_date', 'origin']}
+    res = requests.put(url, headers=headers, data=json.dumps(clean_payload), verify=False)
+    return res.status_code
+
+print("--- QRadar Intelligent Sync Başladı ---")
+
+# 1. QRadar-da olan bütün qaydaları çəkirik
+qradar_rules = get_all_rules_from_qradar()
 
 for filename in os.listdir(RULES_PATH):
     if filename.endswith(".json"):
         with open(os.path.join(RULES_PATH, filename), 'r') as f:
-            try:
-                data = json.load(f)
-                rule_name = data.get('name')
+            github_rule = json.load(f)
+            rule_name = github_rule.get('name')
+            
+            # 2. GitHub-dakı qaydanı QRadar-da adına görə axtarırıq
+            found_rule = next((r for r in qradar_rules if r['name'] == rule_name), None)
+            
+            if found_rule:
+                actual_id = found_rule.get('identifier')
+                print(f"Tapıldı: '{rule_name}' -> ID: {actual_id}")
                 
-                # QRadar-ın "hirslənməməsi" üçün sabit sahələri silirik
-                forbidden = ['id', 'identifier', 'creation_date', 'modification_date', 'owner', 'origin', 'average_capacity', 'base_capacity']
-                payload = {k: v for k, v in data.items() if k not in forbidden}
-
-                # STRATEGIYA: Əvvəl rəqəmli ID ilə yoxlayırıq (məs: 100679)
-                r_id = data.get('id')
-                print(f"Yenilənir: {rule_name} (ID: {r_id})...")
-                
-                status, res_text = try_update(r_id, payload, rule_name)
-                
+                # 3. Tapılan real ID (UUID) ilə yeniləyirik
+                status = update_rule(actual_id, github_rule)
                 if status == 200:
-                    print(f"  [SUCCESS] QRadar qaydanı qəbul etdi!")
+                    print(f"  [UĞURLU] QRadar yeniləndi!")
                 else:
-                    print(f"  [REJECTED] Status: {status}. Cavab: {res_text[:100]}")
-
-            except Exception as e:
-                print(f"  [CRITICAL ERROR] {filename}: {str(e)}")
+                    print(f"  [XƏTA] Status: {status}")
+            else:
+                print(f"  [XƏTA] QRadar-da '{rule_name}' adlı qayda tapılmadı!")
 
 print("--- Proses Bitdi ---")
