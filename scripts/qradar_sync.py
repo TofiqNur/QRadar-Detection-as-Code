@@ -13,57 +13,51 @@ headers = {
     'SEC': SEC_TOKEN,
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'Version': '15.0'
+    'Version': '12.0'
 }
 
-def get_custom_rules():
-    # Bizə ancaq istifadəçinin yaratdığı (custom) rule-lar lazımdır
-    url = f"https://{QRADAR_IP}/api/analytics/custom_rules"
+def get_rules_from_endpoint(endpoint):
+    url = f"https://{QRADAR_IP}/api/analytics/{endpoint}"
     res = requests.get(url, headers=headers, verify=False)
     return res.json() if res.status_code == 200 else []
 
-def update_custom_rule(rule_id, payload):
-    # Custom rule-ları yeniləmək üçün xüsusi endpoint
-    url = f"https://{QRADAR_IP}/api/analytics/custom_rules/{rule_id}"
-    
-    # QRadar-ın PUT zamanı qəbul etmədiyi bütün texniki sahələri təmizləyirik
-    forbidden = [
-        'id', 'identifier', 'owner', 'creation_date', 'modification_date', 
-        'origin', 'average_capacity', 'base_capacity', 'base_host_id', 
-        'capacity_timestamp', 'linked_rule_identifier'
-    ]
-    clean_payload = {k: v for k, v in payload.items() if k not in forbidden}
-    
+def try_put(endpoint, rule_id, payload):
+    url = f"https://{QRADAR_IP}/api/analytics/{endpoint}/{rule_id}"
+    clean_payload = {k: v for k, v in payload.items() if k not in ['id', 'identifier', 'owner', 'creation_date', 'modification_date', 'origin', 'average_capacity', 'base_capacity']}
     res = requests.put(url, headers=headers, data=json.dumps(clean_payload), verify=False)
-    return res.status_code
+    return res.status_code, res.text
 
-print("--- QRadar Final Sync Mode ---")
+print("--- QRadar Discovery & Sync Başladı ---")
 
-# 1. QRadar-dan bütün custom rule-ları gətiririk
-all_custom_rules = get_custom_rules()
+# 1. Hər iki bölmədən qaydaları çəkirik
+standard_rules = get_rules_from_endpoint("rules")
+custom_rules = get_rules_from_endpoint("custom_rules")
+
+print(f"Sistemdə tapıldı: {len(standard_rules)} Standart, {len(custom_rules)} Custom qayda.\n")
 
 for filename in os.listdir(RULES_PATH):
     if filename.endswith(".json"):
         with open(os.path.join(RULES_PATH, filename), 'r') as f:
-            try:
-                github_data = json.load(f)
-                github_name = github_data.get('name')
-                
-                # 2. GitHub-dakı adı QRadar-dakılarla tam uyğunlaşdırırıq
-                match = next((r for r in all_custom_rules if r['name'].strip() == github_name.strip()), None)
-                
-                if match:
-                    real_id = match.get('id')
-                    print(f"Yenilənir: '{github_name}' (ID: {real_id})...")
-                    status = update_custom_rule(real_id, github_data)
-                    
-                    if status == 200:
-                        print("  [OK] Uğurla yeniləndi!")
-                    else:
-                        print(f"  [XƏTA] Status: {status}. QRadar yeniləməni rədd etdi.")
-                else:
-                    print(f"  [XƏTA] '{github_name}' adlı qayda QRadar-da tapılmadı. Adları yoxla!")
-            except Exception as e:
-                print(f"  [KRİTİK] {filename} oxunarkən xəta: {e}")
+            github_rule = json.load(f)
+            name = github_rule.get('name').strip()
+            
+            # Adına görə axtarış (həm Standart, həm Custom daxilində)
+            found_in_custom = next((r for r in custom_rules if r['name'].strip() == name), None)
+            found_in_standard = next((r for r in standard_rules if r['name'].strip() == name), None)
+            
+            if found_in_custom:
+                print(f"'{name}' -> Custom bölməsində tapıldı. Yenilənir...")
+                status, text = try_put("custom_rules", found_in_custom['id'], github_rule)
+            elif found_in_standard:
+                print(f"'{name}' -> Standart bölməsində tapıldı. Yeniləmə sınanır...")
+                status, text = try_put("rules", found_in_standard['identifier'], github_rule)
+            else:
+                print(f"'{name}' -> Tapılmadı! QRadar-dakı adla tam eyni olduğuna əmin ol.")
+                continue
 
-print("--- Proses Bitdi ---")
+            if status == 200:
+                print("  [OK] Uğurla yeniləndi!")
+            else:
+                print(f"  [XƏTA] Status: {status}. Cavab: {text[:50]}")
+
+print("\n--- Proses Bitdi ---")
