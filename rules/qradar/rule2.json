@@ -6,7 +6,7 @@
     "origin": "USER",
     "creation_date": 1775499425984,
     "type": "EVENT",
-    "enabled": true,
+    "enabled": false,
     "modification_date": 1775499987548,
     "linked_rule_identifier": null,
     "name": "Rule 2: Security Audit Log Cleared (Suspicious Activity)",
