@@ -1,1 +1,16 @@
-
+ {
+     "owner": "admin",
+     "identifier": "b93138fb-8108-4a96-85b0-035d9bac421b",
+     "base_host_id": 53,
+     "capacity_timestamp": 1776085166009,
+     "origin": "USER",
+     "creation_date": 1775561024568,
+     "type": "EVENT",
+     "enabled": true,
+     "modification_date": 1775561024564,
+     "linked_rule_identifier": null,
+     "name": "Apply Rule 5: Behavioral Reconnaissance Detection on events...",
+     "average_capacity": 4798925,
+     "id": 100579,
+     "base_capacity": 4798925
+ }
