@@ -6,7 +6,7 @@
     "origin": "USER",
     "creation_date": 1775551948465,
     "type": "EVENT",
-    "enabled": false,
+    "enabled": true,
     "modification_date": 1775551948453,
     "linked_rule_identifier": null,
     "name": "Rule 3: Privilege Escalation: Member Added to Sensitive Group",
