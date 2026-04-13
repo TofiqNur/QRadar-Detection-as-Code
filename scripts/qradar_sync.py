@@ -9,51 +9,45 @@ QRADAR_IP = os.getenv('QRADAR_IP')
 SEC_TOKEN = os.getenv('QRADAR_TOKEN')
 RULES_PATH = "rules/qradar/"
 
-# QRadar API-nin mütləq tələb etdiyi versiya və təhlükəsizlik başlıqları
+# Versiyanı 12.0 edirik, çünki bu versiya daha çox "tolerantdır"
 headers = {
     'SEC': SEC_TOKEN,
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'Version': '15.0'  # Bu versiya 404 xətasını həll etmək üçün mütləqdir
+    'Version': '12.0' 
 }
 
-def update_qradar_rule(rule_id, rule_data):
-    # Əsas qayda: Sənin yaratdığın qaydalar adətən bu ünvanda olur
+def try_update(rule_id, payload, rule_name):
+    # Bu endpoint ən stabil olanıdır
     url = f"https://{QRADAR_IP}/api/analytics/rules/{rule_id}"
-    
-    # QRadar-ın "Update" zamanı qəbul etmədiyi (Read-only) sahələri təmizləyirik
-    forbidden_keys = [
-        'id', 'identifier', 'creation_date', 'modification_date', 
-        'owner', 'average_capacity', 'base_capacity', 
-        'base_host_id', 'capacity_timestamp', 'origin'
-    ]
-    payload = {k: v for k, v in rule_data.items() if k not in forbidden_keys}
-    
-    # PUT metodu ilə məlumatı göndəririk
     response = requests.put(url, headers=headers, data=json.dumps(payload), verify=False)
     return response.status_code, response.text
 
-print("--- QRadar Rule Sync Başladı ---")
+print("--- QRadar Professional Sync v3 Başladı ---")
 
-for filename in sorted(os.listdir(RULES_PATH)):
+for filename in os.listdir(RULES_PATH):
     if filename.endswith(".json"):
         with open(os.path.join(RULES_PATH, filename), 'r') as f:
             try:
                 data = json.load(f)
-                # QRadar qaydaları mütləq UUID (identifier) ilə yenilənməlidir
-                rule_uuid = data.get('identifier')
                 rule_name = data.get('name')
                 
-                print(f"Yenilənir: {rule_name}...")
-                status, response_text = update_qradar_rule(rule_uuid, data)
+                # QRadar-ın "hirslənməməsi" üçün sabit sahələri silirik
+                forbidden = ['id', 'identifier', 'creation_date', 'modification_date', 'owner', 'origin', 'average_capacity', 'base_capacity']
+                payload = {k: v for k, v in data.items() if k not in forbidden}
+
+                # STRATEGIYA: Əvvəl rəqəmli ID ilə yoxlayırıq (məs: 100679)
+                r_id = data.get('id')
+                print(f"Yenilənir: {rule_name} (ID: {r_id})...")
+                
+                status, res_text = try_update(r_id, payload, rule_name)
                 
                 if status == 200:
-                    print(f"  [OK] Uğurla yeniləndi!")
-                elif status == 404:
-                    print(f"  [XƏTA] 404: QRadar bu ID-ni tapmadı: {rule_uuid}. API bölməsini yoxla.")
+                    print(f"  [SUCCESS] QRadar qaydanı qəbul etdi!")
                 else:
-                    print(f"  [XƏTA] Status: {status}. Cavab: {response_text[:100]}")
-            except Exception as e:
-                print(f"  [XƏTA] Fayl oxunarkən problem: {e}")
+                    print(f"  [REJECTED] Status: {status}. Cavab: {res_text[:100]}")
 
-print("--- Sync Prosesi Bitdi ---")
+            except Exception as e:
+                print(f"  [CRITICAL ERROR] {filename}: {str(e)}")
+
+print("--- Proses Bitdi ---")
