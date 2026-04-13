@@ -1,1 +1,16 @@
-
+{
+    "owner": "admin",
+    "identifier": "cc69fc0c-2cfb-4093-bc6c-19828c22fbb4",
+    "base_host_id": 53,
+    "capacity_timestamp": 1776085166009,
+    "origin": "USER",
+    "creation_date": 1775557994489,
+    "type": "EVENT",
+    "enabled": true,
+    "modification_date": 1775557994486,
+    "linked_rule_identifier": null,
+    "name": "Rule 4: Persistence: Registry Run Key Modification Detected",
+    "average_capacity": 4686914,
+    "id": 100578,
+    "base_capacity": 4686914
+}
