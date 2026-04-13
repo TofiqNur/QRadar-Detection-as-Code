@@ -1,1 +1,16 @@
-
+{
+    "owner": "admin",
+    "identifier": "c89cdb03-6e8a-4ec5-8713-976605d7bcac",
+    "base_host_id": 53,
+    "capacity_timestamp": 1776085166009,
+    "origin": "USER",
+    "creation_date": 1775655324582,
+    "type": "EVENT",
+    "enabled": true,
+    "modification_date": 1775657051690,
+    "linked_rule_identifier": null,
+    "name": "Rule 10: RANSOMWARE: Mass File Encryption Detected",
+    "average_capacity": 212997,
+    "id": 100679,
+    "base_capacity": 212997
+}
