@@ -1,1 +1,16 @@
-
+{
+    "owner": "admin",
+    "identifier": "06dea128-4fa8-4132-8480-3c6dba9c00fb",
+    "base_host_id": 53,
+    "capacity_timestamp": 1776085166009,
+    "origin": "USER",
+    "creation_date": 1775551948465,
+    "type": "EVENT",
+    "enabled": true,
+    "modification_date": 1775551948453,
+    "linked_rule_identifier": null,
+    "name": "Rule 3: Privilege Escalation: Member Added to Sensitive Group",
+    "average_capacity": 5188067,
+    "id": 100577,
+    "base_capacity": 5188067
+}
