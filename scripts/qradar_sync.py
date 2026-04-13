@@ -27,7 +27,7 @@ for filename in os.listdir(RULES_PATH):
     if filename.endswith(".json"):
         with open(os.path.join(RULES_PATH, filename), 'r') as f:
             data = json.load(f)
-            rule_id = data.get('id') # JSON daxilindəki ID-ni götürür
+            rule_id = data.get('identifier') # JSON daxilindəki ID-ni götürür
             
             print(f"Yenilənir: {data.get('name')} (ID: {rule_id})...")
             status = update_qradar_rule(rule_id, data)
