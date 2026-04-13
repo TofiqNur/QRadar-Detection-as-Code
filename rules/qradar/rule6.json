@@ -1,1 +1,16 @@
-
+{
+    "owner": "admin",
+    "identifier": "989b0754-15ad-4049-b798-53b00476c12c",
+    "base_host_id": 53,
+    "capacity_timestamp": 1776085166009,
+    "origin": "USER",
+    "creation_date": 1775568820873,
+    "type": "EVENT",
+    "enabled": true,
+    "modification_date": 1775568820863,
+    "linked_rule_identifier": null,
+    "name": "Rule 6: CRITICAL: DCSync Credential Dumping Attempt Detected",
+    "average_capacity": 3952881,
+    "id": 100627,
+    "base_capacity": 3952881
+}
