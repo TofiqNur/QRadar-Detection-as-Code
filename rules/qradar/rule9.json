@@ -1,1 +1,16 @@
-
+{
+    "owner": "admin",
+    "identifier": "8fb162c3-6156-44c9-93bc-38f4aff64557",
+    "base_host_id": 53,
+    "capacity_timestamp": 1776085166009,
+    "origin": "USER",
+    "creation_date": 1775652775534,
+    "type": "EVENT",
+    "enabled": true,
+    "modification_date": 1775653461740,
+    "linked_rule_identifier": null,
+    "name": "Rule 9: HONEYTOKEN: Access Attempt to Canary Account (Honey_Admin)",
+    "average_capacity": 3845710,
+    "id": 100678,
+    "base_capacity": 3845710
+}
