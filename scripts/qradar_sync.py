@@ -22,14 +22,17 @@ def get_standard_rules():
     return res.json() if res.status_code == 200 else []
 
 def update_rule(rule_id, payload):
-    # DİQQƏT: Bura yalnız rəqəmli ID (məs: 100577) gəlməlidir!
     url = f"https://{QRADAR_IP}/api/analytics/rules/{rule_id}"
     
     clean_payload = {k: v for k, v in payload.items() if k not in ['id', 'identifier', 'owner', 'creation_date', 'modification_date', 'origin', 'average_capacity', 'base_capacity']}
-    res = requests.put(url, headers=headers, data=json.dumps(clean_payload), verify=False)
+    
+    # -------------------------------------------------------------
+    # BÜTÜN PROBLEM BURADA İDİ: requests.put yox, requests.post !
+    # -------------------------------------------------------------
+    res = requests.post(url, headers=headers, data=json.dumps(clean_payload), verify=False)
     return res.status_code, res.text
 
-print("--- QRadar Final Fix Başladı ---")
+print("--- QRadar Final POST Fix Başladı ---")
 
 standard_rules = get_standard_rules()
 
@@ -39,20 +42,20 @@ for filename in os.listdir(RULES_PATH):
             github_rule = json.load(f)
             name = github_rule.get('name').strip()
             
-            # Qaydanı tapırıq
             found = next((r for r in standard_rules if r['name'].strip() == name), None)
             
             if found:
-                # MÜHÜM HİSSƏ: Uzun identifier yox, qısa rəqəmli id götürülür
                 r_id = found['id'] 
                 print(f"Yenilənir: '{name}' (Rəqəmli ID: {r_id})...")
                 
+                # POST sorğusu göndərilir
                 status, text = update_rule(r_id, github_rule)
                 
-                if status == 200:
-                    print("  [OK] UĞURLA YENİLƏNDİ! ZƏFƏR BİZİMDİR!")
+                # QRadar uğurlu POST üçün 200, 201 və ya 202 qaytara bilər
+                if status in [200, 201, 202]:
+                    print("  [OK] UĞURLA YENİLƏNDİ!")
                 else:
-                    print(f"  [XƏTA] Status: {status}. QRadar yenə etiraz etdi: {text[:60]}")
+                    print(f"  [XƏTA] Status: {status}. Cavab: {text[:60]}")
             else:
                 print(f"'{name}' -> QRadar-da tapılmadı.")
 
