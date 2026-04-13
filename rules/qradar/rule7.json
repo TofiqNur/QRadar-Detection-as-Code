@@ -1,1 +1,16 @@
-
+{
+    "owner": "admin",
+    "identifier": "77b960f3-0e48-48d9-98b3-20747bc3419c",
+    "base_host_id": 53,
+    "capacity_timestamp": 1776085166009,
+    "origin": "USER",
+    "creation_date": 1775571827149,
+    "type": "EVENT",
+    "enabled": true,
+    "modification_date": 1775571827146,
+    "linked_rule_identifier": null,
+    "name": "Rule 7 :SUSPICIOUS: Encoded PowerShell Command Execution",
+    "average_capacity": 4920291,
+    "id": 100628,
+    "base_capacity": 4920291
+}
