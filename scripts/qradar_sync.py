@@ -16,24 +16,22 @@ headers = {
     'Version': '12.0'
 }
 
-def get_rules_from_endpoint(endpoint):
-    url = f"https://{QRADAR_IP}/api/analytics/{endpoint}"
+def get_standard_rules():
+    url = f"https://{QRADAR_IP}/api/analytics/rules"
     res = requests.get(url, headers=headers, verify=False)
     return res.json() if res.status_code == 200 else []
 
-def try_put(endpoint, rule_id, payload):
-    url = f"https://{QRADAR_IP}/api/analytics/{endpoint}/{rule_id}"
+def update_rule(rule_id, payload):
+    # DİQQƏT: Bura yalnız rəqəmli ID (məs: 100577) gəlməlidir!
+    url = f"https://{QRADAR_IP}/api/analytics/rules/{rule_id}"
+    
     clean_payload = {k: v for k, v in payload.items() if k not in ['id', 'identifier', 'owner', 'creation_date', 'modification_date', 'origin', 'average_capacity', 'base_capacity']}
     res = requests.put(url, headers=headers, data=json.dumps(clean_payload), verify=False)
     return res.status_code, res.text
 
-print("--- QRadar Discovery & Sync Başladı ---")
+print("--- QRadar Final Fix Başladı ---")
 
-# 1. Hər iki bölmədən qaydaları çəkirik
-standard_rules = get_rules_from_endpoint("rules")
-custom_rules = get_rules_from_endpoint("custom_rules")
-
-print(f"Sistemdə tapıldı: {len(standard_rules)} Standart, {len(custom_rules)} Custom qayda.\n")
+standard_rules = get_standard_rules()
 
 for filename in os.listdir(RULES_PATH):
     if filename.endswith(".json"):
@@ -41,23 +39,21 @@ for filename in os.listdir(RULES_PATH):
             github_rule = json.load(f)
             name = github_rule.get('name').strip()
             
-            # Adına görə axtarış (həm Standart, həm Custom daxilində)
-            found_in_custom = next((r for r in custom_rules if r['name'].strip() == name), None)
-            found_in_standard = next((r for r in standard_rules if r['name'].strip() == name), None)
+            # Qaydanı tapırıq
+            found = next((r for r in standard_rules if r['name'].strip() == name), None)
             
-            if found_in_custom:
-                print(f"'{name}' -> Custom bölməsində tapıldı. Yenilənir...")
-                status, text = try_put("custom_rules", found_in_custom['id'], github_rule)
-            elif found_in_standard:
-                print(f"'{name}' -> Standart bölməsində tapıldı. Yeniləmə sınanır...")
-                status, text = try_put("rules", found_in_standard['identifier'], github_rule)
+            if found:
+                # MÜHÜM HİSSƏ: Uzun identifier yox, qısa rəqəmli id götürülür
+                r_id = found['id'] 
+                print(f"Yenilənir: '{name}' (Rəqəmli ID: {r_id})...")
+                
+                status, text = update_rule(r_id, github_rule)
+                
+                if status == 200:
+                    print("  [OK] UĞURLA YENİLƏNDİ! ZƏFƏR BİZİMDİR!")
+                else:
+                    print(f"  [XƏTA] Status: {status}. QRadar yenə etiraz etdi: {text[:60]}")
             else:
-                print(f"'{name}' -> Tapılmadı! QRadar-dakı adla tam eyni olduğuna əmin ol.")
-                continue
+                print(f"'{name}' -> QRadar-da tapılmadı.")
 
-            if status == 200:
-                print("  [OK] Uğurla yeniləndi!")
-            else:
-                print(f"  [XƏTA] Status: {status}. Cavab: {text[:50]}")
-
-print("\n--- Proses Bitdi ---")
+print("--- Proses Bitdi ---")
